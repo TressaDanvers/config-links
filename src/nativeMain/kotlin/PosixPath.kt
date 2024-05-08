@@ -13,14 +13,56 @@ sealed interface PosixPath {
 			if (getcwd(cstring, 512u) == NULL)
 				throw RuntimeException("could not get working directory")
 			val string = cstring.toKString()
-			free(cstring)
 			return@memScoped of(string)
 		}
+	}
+
+	val exists get() = access(pathString, F_OK) != -1
+	val doesNotExist get() = !exists
+
+	@OptIn(ExperimentalForeignApi::class)
+	val isDirectory get() = exists && memScoped {
+		val dp: CPointerVar<DIR> = alloc()
+		dp.value = opendir(pathString)
+		val isDir = dp.value != NULL
+		closedir(dp.value)
+		return@memScoped isDir
+	}
+
+	val isNotDirectory get() = !isDirectory
+
+	fun ln(target: PosixPath) =
+		link(pathString, target.pathString)
+
+	fun mkdir() {
+		if (isNotDirectory && doesNotExist)
+			mkdir(pathString, 0b111111111u)
+	}
+
+	@OptIn(ExperimentalForeignApi::class)
+	fun resolveDirectoryEntries(): Set<PosixPath> = memScoped {
+		val dp: CPointerVar<DIR> = alloc()
+		val ep: CPointerVar<dirent> = alloc()
+		dp.value = opendir(pathString)
+		if (dp.value == NULL)
+			throw RuntimeException("$pathString is not a directory")
+		val subPaths = mutableListOf<String>()
+		ep.value = readdir(dp.value)
+		while (ep.value != NULL) {
+			subPaths += ep.pointed!!.d_name.toKString()
+			ep.value = readdir(dp.value)
+		}
+		closedir(dp.value)
+		subPaths.filterNot { it == "." || it == ".." }
+			.map { resolve(it) }
+			.sortedBy { it.name.replace("^\\.+".toRegex(), "") }
+			.toSet()
 	}
 
 	fun resolve(string: String) = of(pathString, string)
 	fun resolve(other: PosixPath) = of(pathString, other.pathString)
 
+	val name: String get() = pathString.split("/".toRegex()).lastOrNull() ?: "/"
 	val pathString: String
 	val absolute: PosixPath
 }

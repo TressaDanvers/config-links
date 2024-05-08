@@ -9,11 +9,11 @@ internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
 			}
 		}.map { it.getOrThrow() }
 		.sortedBy { it.priority }
+		.distinct()
 		.let { opts ->
 			if (opts.any { opt -> opt.priority == 0u })
 				opts.filter { opt -> opt.priority == 0u }
 					.sortedBy { opt -> opt.zPriority }
-					.distinct()
 					.onEach { it.call() }
 					.also { exit(EXIT_SUCCESS) }
 			else opts
@@ -81,10 +81,12 @@ internal data class SingleOpt(val opt: String): Opt {
 	companion object {
 		val opts = mapOf<String, () -> Unit>(
 			"h" to ::help, "help" to ::help,
+			"link" to ::linkAll,
 			"v" to ::version, "version" to ::version
 		)
 		val priority = mapOf(
 			"h" to 0u, "help" to 0u,
+			"link" to 100u,
 			"v" to 0u, "version" to 0u
 		)
 	}
