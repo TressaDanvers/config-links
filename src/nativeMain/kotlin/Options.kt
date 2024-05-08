@@ -2,8 +2,12 @@ import platform.posix.*
 
 internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
 	validateArgs(args)
-		.onEach { it.onFailure(::fail) }
-		.map { it.getOrThrow() }
+		.also { opts ->
+			opts.filter { it.isFailure }.also { errs ->
+				if (errs.size == 1) fail(errs.first().exceptionOrNull()!!)
+				else if (errs.isNotEmpty()) fail("multiple errors")
+			}
+		}.map { it.getOrThrow() }
 		.sortedBy { it.priority }
 		.let { opts ->
 			if (opts.any { opt -> opt.priority == 0u })
@@ -23,6 +27,9 @@ internal fun validateArgs(args: Array<out String>) =
 		@Suppress("NAME_SHADOWING")
 		if (opt == null) validateOpt(arg).mapCatching { opt ->
 			when (opt) {
+				null -> {
+					throw RuntimeException("invalid option")
+				}
 				in SingleOpt.opts.keys -> null to (l + Result.success(opt to null))
 				in DoubleOpt.opts.keys -> opt to l
 				else -> {
@@ -45,9 +52,15 @@ internal fun validateArgs(args: Array<out String>) =
 private fun validateOpt(opt: String) = opt.runCatching {
 	if (length == 2 && startsWith('-')) substring(1)
 	else if (length >= 4 && startsWith("--")) substring(2)
-	else if (length == 3 && startsWith("--"))
-		throw RuntimeException("`$this` is not a valid option. Did you mean `${substring(1)}`?")
-	else throw RuntimeException("`$this` is not a valid option.")
+	else {
+		if (length == 3 && startsWith("--") && substring(2) in (SingleOpt.opts.keys + DoubleOpt.opts.keys))
+			err(
+				"${ANSI_BOLD}‘$this’${ANSI_NOSTRENGTH} is not a valid option;" +
+						" did you mean ${ANSI_BOLD}‘${substring(1)}’${ANSI_NOSTRENGTH}?"
+			)
+		else err("${ANSI_BOLD}‘$this’${ANSI_NOSTRENGTH} is not a valid option")
+		null
+	}
 }
 
 internal sealed interface Opt {
