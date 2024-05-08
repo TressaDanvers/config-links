@@ -31,8 +31,9 @@ sealed interface PosixPath {
 
 	val isNotDirectory get() = !isDirectory
 
-	fun ln(target: PosixPath) =
+	fun ln(target: Path) {
 		link(pathString, target.pathString)
+	}
 
 	fun mkdir() {
 		if (isNotDirectory && doesNotExist)
@@ -60,7 +61,7 @@ sealed interface PosixPath {
 	}
 
 	fun resolve(string: String) = of(pathString, string)
-	fun resolve(other: PosixPath) = of(pathString, other.pathString)
+	fun resolve(other: Path) = of(pathString, other.pathString)
 
 	val name: String get() = pathString.split("/".toRegex()).lastOrNull() ?: "/"
 	val pathString: String

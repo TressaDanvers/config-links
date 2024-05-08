@@ -10,15 +10,3 @@ This project is inspired by [chezmoi](https://www.chezmoi.io/).
   many operating systems. (e.g. Debian, Arch, Slackware, Windows, macOS, etc...)
 - It will account for both absolute and relative symlinks in the source directory.
 - It will have optional directory folding for ext4 case-folding.
-
-## Build Instructions
-
-### Requirements
-
-The [kotlinc-native](https://github.com/JetBrains/kotlin) compiler on your path.
-
-### Instructions
-
-If you have make, run `make all` in your terminal; otherwise, run `bash make.sh all`.
-
-You will find the executable file at `./build/indev/config-links`

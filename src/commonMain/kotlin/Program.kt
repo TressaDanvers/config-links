@@ -1,7 +1,7 @@
 internal const val VERSION = "v0.1.0"
 
-internal lateinit var source: PosixPath
-internal lateinit var target: PosixPath
+internal lateinit var source: Path
+internal lateinit var target: Path
 
 internal fun linkAll() {
 	require(source.isDirectory)
@@ -9,7 +9,7 @@ internal fun linkAll() {
 	source.linkAllTo(target)
 }
 
-internal fun PosixPath.linkAllTo(target: PosixPath) {
+internal fun Path.linkAllTo(target: Path) {
 	info("linking all in $this to $target")
 
 	if (target.doesNotExist) target.mkdir()
@@ -42,9 +42,9 @@ internal fun version() {
 }
 
 internal fun setTargetPath(arg: String) {
-	target = PosixPath.of(arg)
+	target = Path(arg)
 }
 
 internal fun setSourcePath(arg: String) {
-	source = PosixPath.of(arg)
+	source = Path(arg)
 }

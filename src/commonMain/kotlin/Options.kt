@@ -72,7 +72,7 @@ internal sealed interface Opt {
 	}
 
 	operator fun component1(): String
-	val zPriority: UInt get() = Opt.zPriority[component1()] ?: UInt.MAX_VALUE
+	val zPriority: UInt get() = Companion.zPriority[component1()] ?: UInt.MAX_VALUE
 	val priority: UInt
 	fun call()
 }
@@ -91,7 +91,7 @@ internal data class SingleOpt(val opt: String): Opt {
 		)
 	}
 
-	override val priority: UInt get() = SingleOpt.priority[opt]!!
+	override val priority: UInt get() = Companion.priority[opt]!!
 
 	override fun call() { opts[opt]?.let { f -> f() } }
 }
@@ -108,7 +108,7 @@ internal data class DoubleOpt(val opt: String, val arg: String): Opt {
 		)
 	}
 
-	override val priority: UInt get() = DoubleOpt.priority[opt]!!
+	override val priority: UInt get() = Companion.priority[opt]!!
 
 	override fun call() { opts[opt]?.let { f -> f(arg) } }
 }
