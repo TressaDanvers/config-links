@@ -1,14 +1,22 @@
+import platform.posix.*
+
 internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
 	validateArgs(args)
 		.onEach { it.onFailure(::fail) }
 		.map { it.getOrThrow() }
 		.sortedBy { it.priority }
 		.let { opts ->
-			if (opts.any { opt -> opt.priority == 0u }) opts.filter { opt -> opt.priority == 0u }
+			if (opts.any { opt -> opt.priority == 0u })
+				opts.filter { opt -> opt.priority == 0u }
+					.sortedBy { opt -> opt.zPriority }
+					.distinct()
+					.onEach { it.call() }
+					.also { exit(EXIT_SUCCESS) }
 			else opts
 				.also { if (it.none { (opt) -> opt == "t" || opt == "target" }) fail("must provide target path") }
 				.also { if (it.none { (opt) -> opt == "s" || opt == "source" }) fail("must provide source path") }
-		}.onEach { it.call() }
+				.onEach { it.call() }
+		}
 
 internal fun validateArgs(args: Array<out String>) =
 	args.fold((null as String?) to emptyList<Result<Pair<String, String?>>>()) { (opt, l), arg ->
@@ -43,7 +51,15 @@ private fun validateOpt(opt: String) = opt.runCatching {
 }
 
 internal sealed interface Opt {
+	companion object {
+		val zPriority = mapOf(
+			"v" to 0u, "version" to 0u,
+			"h" to 1u, "help" to 1u
+		)
+	}
+
 	operator fun component1(): String
+	val zPriority: UInt get() = Opt.zPriority[component1()] ?: UInt.MAX_VALUE
 	val priority: UInt
 	fun call()
 }
@@ -51,10 +67,12 @@ internal sealed interface Opt {
 internal data class SingleOpt(val opt: String): Opt {
 	companion object {
 		val opts = mapOf<String, () -> Unit>(
-			"h" to ::help, "help" to ::help
+			"h" to ::help, "help" to ::help,
+			"v" to ::version, "version" to ::version
 		)
 		val priority = mapOf(
-			"h" to 0u, "help" to 0u
+			"h" to 0u, "help" to 0u,
+			"v" to 0u, "version" to 0u
 		)
 	}
 
