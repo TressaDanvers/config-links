@@ -11,7 +11,7 @@ sealed interface PosixPath {
 		val CWD get() = memScoped {
 			val cstring: CPointer<ByteVar> = allocArray(512)
 			if (getcwd(cstring, 512u) == NULL)
-				throw Error("could not get working directory")
+				throw RuntimeException("could not get working directory")
 			val string = cstring.toKString()
 			free(cstring)
 			return@memScoped of(string)
