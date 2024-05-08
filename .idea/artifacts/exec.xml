@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="exec">
+    <output-path>$PROJECT_DIR$/out/artifacts/exec</output-path>
+    <root id="root">
+      <element id="module-output" name="config-links.nativeMain" />
+      <element id="library" level="project" name="Kotlin/Native: stdlib" />
+      <element id="library" level="project" name="Kotlin/Native: zlib | linux_x64" />
+      <element id="library" level="project" name="Kotlin/Native: builtin | linux_x64" />
+      <element id="library" level="project" name="Kotlin/Native: iconv | linux_x64" />
+      <element id="library" level="project" name="Kotlin/Native: linux | linux_x64" />
+      <element id="library" level="project" name="Kotlin/Native: posix | linux_x64" />
+    </root>
+  </artifact>
+</component>
