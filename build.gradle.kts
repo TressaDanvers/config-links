@@ -2,7 +2,7 @@ plugins {
   kotlin("multiplatform") version "1.9.20-RC2"
 }
 
-group = "me.user"
+group = "ch.protonmail.tdanvers"
 version = "v0.1.0"
 
 repositories {
