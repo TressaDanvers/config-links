@@ -34,3 +34,7 @@ internal actual fun fail(message: String) {
 internal actual fun fail(e: Throwable) {
 	fail(e.message ?: "runtime error thrown")
 }
+
+internal actual fun exit(status: ExitStatus) =
+  if (status == ExitSuccess) exit(EXIT_SUCCESS)
+  else exit(EXIT_FAILURE)

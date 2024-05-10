@@ -12,3 +12,9 @@ internal expect fun err(message: String)
 internal expect fun err(e: Throwable)
 internal expect fun fail(message: String)
 internal expect fun fail(e: Throwable)
+
+sealed interface ExitStatus
+data object ExitSuccess: ExitStatus
+data object ExitFailure: ExitStatus
+
+internal expect fun exit(status: ExitStatus)

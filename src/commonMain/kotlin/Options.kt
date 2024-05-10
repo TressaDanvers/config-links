@@ -1,5 +1,3 @@
-import platform.posix.*
-
 internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
 	validateArgs(args)
 		.also { opts ->
@@ -15,7 +13,7 @@ internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
 				opts.filter { opt -> opt.priority == 0u }
 					.sortedBy { opt -> opt.zPriority }
 					.onEach { it.call() }
-					.also { exit(EXIT_SUCCESS) }
+					.also { exit(ExitSuccess) }
 			else opts
 				.also { if (it.none { (opt) -> opt == "t" || opt == "target" }) fail("must provide target path") }
 				.also { if (it.none { (opt) -> opt == "s" || opt == "source" }) fail("must provide source path") }
