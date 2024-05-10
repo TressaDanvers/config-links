@@ -1,4 +1,4 @@
-internal const val VERSION = "v0.1.0"
+internal const val VERSION = "v0.1.0-pre"
 
 internal var source: Path = sourceDefault()
 internal var target: Path = home()
