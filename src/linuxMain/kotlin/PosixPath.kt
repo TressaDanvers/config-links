@@ -89,7 +89,7 @@ private data class PosixAbsPath(val path: List<String>): PosixPath {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("/".toRegex()) }
 				.also { require(it.none { st -> st.isBlank() }) }
-				.let(::PosixRelPath)
+				.let(::PosixAbsPath)
 	}
 
 	override val pathString get() = path.joinToString("") { "/$it" }

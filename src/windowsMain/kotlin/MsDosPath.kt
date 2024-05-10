@@ -6,7 +6,7 @@ import platform.windows.CreateHardLinkA
 sealed interface MsDosPath {
 	companion object {
 		fun of(vararg path: String): MsDosPath =
-			if (path.first().startsWith('\\')) MsDosAbsPath.of(*path)
+			if (path.first().matches("^[a-zA-Z]:\\\\.*".toRegex())) MsDosAbsPath.of(*path)
 			else MsDosRelPath.of(*path)
 
 		@OptIn(ExperimentalForeignApi::class)
@@ -67,36 +67,37 @@ sealed interface MsDosPath {
 	fun resolve(string: String) = of(pathString, string)
 	fun resolve(other: Path) = of(pathString, other.pathString)
 
-	val name: String get() = pathString.split("/".toRegex()).lastOrNull() ?: "/"
+	val name: String get() = pathString.split("\\\\".toRegex()).last()
 	val pathString: String
 	val absolute: MsDosPath
 }
 
 private data class MsDosRelPath(val path: List<String>): MsDosPath {
-	init { require(path.none { it.contains('/') }) }
+	init { require(path.none { it.contains('\\') }) }
 	companion object {
 		fun of(vararg path: String) =
-			path.flatMap { it.split("/".toRegex()) }
+			path.flatMap { it.split("\\\\".toRegex()) }
 				.also { require(it.none { st -> st.isBlank() }) }
 				.let(::MsDosRelPath)
 	}
 
-	override val pathString get() = path.joinToString("/")
+	override val pathString get() = path.joinToString("\\")
 	override val absolute get() = MsDosPath.CWD.resolve(this)
 
 	override fun toString() = pathString
 }
 
-private data class MsDosAbsPath(val path: List<String>): MsDosPath {
-	init { require(path.none { it.contains('/') }) }
+private data class MsDosAbsPath(val path: List<String>, val drive: Char): MsDosPath {
+	init { require(path.none { it.contains('\\') }) }
 	companion object {
 		fun of(vararg path: String) =
-			path.flatMap { it.split("/".toRegex()) }
+			path.flatMap { it.split("\\\\".toRegex()) }
 				.also { require(it.none { st -> st.isBlank() }) }
-				.let(::MsDosRelPath)
+				.let { it.first() to it.drop(1) }
+				.let { (drive, path) -> MsDosAbsPath(path, drive.first()) }
 	}
 
-	override val pathString get() = path.joinToString("") { "/$it" }
+	override val pathString get() = "$drive:" + path.joinToString("") { "\\$it" }
 	override val absolute get() = this
 
 	override fun toString() = pathString
