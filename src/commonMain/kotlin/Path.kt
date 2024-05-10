@@ -14,6 +14,7 @@ expect interface Path {
 
   fun mkdir()
   fun ln(target: Path)
+  fun rm()
 
   fun resolveDirectoryEntries(): Set<Path>
   fun resolve(string: String): Path

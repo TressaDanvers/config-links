@@ -35,6 +35,10 @@ sealed interface PosixPath {
 		link(pathString, target.pathString)
 	}
 
+	fun rm() {
+		remove(pathString)
+	}
+
 	fun mkdir() {
 		if (isNotDirectory && doesNotExist)
 			mkdir(pathString, 0b111111111u)

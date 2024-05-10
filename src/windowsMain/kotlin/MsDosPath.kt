@@ -2,6 +2,7 @@ import kotlinx.cinterop.*
 import platform.posix.*
 import platform.windows.CreateDirectoryW
 import platform.windows.CreateHardLinkA
+import platform.windows.DeleteFileW
 
 sealed interface MsDosPath {
 	companion object {
@@ -36,6 +37,10 @@ sealed interface MsDosPath {
 	@OptIn(ExperimentalForeignApi::class)
 	fun ln(target: Path) {
 		CreateHardLinkA(target.pathString, pathString, null)
+	}
+
+	fun rm() {
+		DeleteFileW(pathString)
 	}
 
 	@OptIn(ExperimentalForeignApi::class)
