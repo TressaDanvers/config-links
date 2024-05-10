@@ -1,3 +1,4 @@
 fun main(vararg args: String) {
-	readAndExecuteOptionsFromArguments(args)
+  if (args.isEmpty()) readAndExecuteOptionsFromArguments("-h")
+	else readAndExecuteOptionsFromArguments(*args)
 }

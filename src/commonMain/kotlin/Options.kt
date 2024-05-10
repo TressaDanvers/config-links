@@ -1,4 +1,4 @@
-internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
+internal fun readAndExecuteOptionsFromArguments(vararg args: String) =
 	validateArgs(args)
 		.also { opts ->
 			opts.filter { it.isFailure }.also { errs ->
@@ -14,10 +14,7 @@ internal fun readAndExecuteOptionsFromArguments(args: Array<out String>) =
 					.sortedBy { opt -> opt.zPriority }
 					.onEach { it.call() }
 					.also { exit(ExitSuccess) }
-			else opts
-				.also { if (it.none { (opt) -> opt == "t" || opt == "target" }) fail("must provide target path") }
-				.also { if (it.none { (opt) -> opt == "s" || opt == "source" }) fail("must provide source path") }
-				.onEach { it.call() }
+			else opts.onEach { it.call() }
 		}
 
 internal fun validateArgs(args: Array<out String>) =
@@ -97,11 +94,13 @@ internal data class SingleOpt(val opt: String): Opt {
 internal data class DoubleOpt(val opt: String, val arg: String): Opt {
 	companion object {
 		val opts = mapOf<String, (String) -> Unit>(
-			"s" to ::setSourcePath, "source" to ::setSourcePath,
+      "m" to ::manage, "manage" to ::manage,
+      "s" to ::setSourcePath, "source" to ::setSourcePath,
 			"t" to ::setTargetPath, "target" to ::setTargetPath
 		)
 		val priority = mapOf(
-			"s" to 10u, "source" to 10u,
+      "m" to 50u, "manage" to 50u,
+      "s" to 10u, "source" to 10u,
 			"t" to 11u, "target" to 11u
 		)
 	}

@@ -6,6 +6,10 @@ internal const val ANSI_YELLOW = "\u001B[33m"
 internal const val ANSI_BLUE = "\u001B[34m"
 internal const val ANSI_NOCOLOR = "\u001B[39m"
 
+internal fun failIfFalse(value: Boolean, message: String) {
+  if (!value) fail(message)
+}
+
 internal expect fun info(message: String)
 internal expect fun warn(message: String)
 internal expect fun err(message: String)

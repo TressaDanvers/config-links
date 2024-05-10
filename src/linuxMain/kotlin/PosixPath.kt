@@ -4,7 +4,9 @@ import platform.posix.*
 sealed interface PosixPath {
 	companion object {
 		fun of(vararg path: String): PosixPath =
-			if (path.first().startsWith('/')) PosixAbsPath.of(*path)
+      if (path.first().startsWith('/')) PosixAbsPath.of(*path)
+      else if (path.first().startsWith("~/") || path.first() == "~")
+        home().resolve(path.joinToString("/").replace("^~".toRegex(), ""))
 			else PosixRelPath.of(*path)
 
 		@OptIn(ExperimentalForeignApi::class)
@@ -40,8 +42,10 @@ sealed interface PosixPath {
 	}
 
 	fun mkdir() {
-		if (isNotDirectory && doesNotExist)
-			mkdir(pathString, 0b111111111u)
+		if (isNotDirectory && doesNotExist) {
+      if (parent.doesNotExist) parent.mkdir()
+      mkdir(pathString, 0b111111111u)
+    }
 	}
 
 	@OptIn(ExperimentalForeignApi::class)
@@ -67,13 +71,15 @@ sealed interface PosixPath {
 	fun resolve(string: String) = of(pathString, string)
 	fun resolve(other: Path) = of(pathString, other.pathString)
 
-	val name: String get() = pathString.split("/".toRegex()).lastOrNull() ?: "/"
+	val name: String get() = canonical.pathString.split("/".toRegex()).lastOrNull() ?: "/"
 	val pathString: String
-	val absolute: PosixPath
+  val absolute: PosixPath
+  val parent: PosixPath
+  val canonical: PosixPath
 }
 
 private data class PosixRelPath(val path: List<String>): PosixPath {
-	init { require(path.none { it.contains('/') }) }
+	init { failIfFalse(path.none { it.contains('/') }, "io exception; path contains /") }
 	companion object {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("/".toRegex()) }
@@ -83,21 +89,37 @@ private data class PosixRelPath(val path: List<String>): PosixPath {
 
 	override val pathString get() = path.joinToString("/")
 	override val absolute get() = PosixPath.CWD.resolve(this)
+  override val parent: PosixPath get() = absolute.parent
+  override val canonical: PosixPath get() = absolute.canonical
 
 	override fun toString() = pathString
 }
 
 private data class PosixAbsPath(val path: List<String>): PosixPath {
-	init { require(path.none { it.contains('/') }) }
+	init { failIfFalse(path.none { it.contains('/') }, "io exception; path contains /") }
 	companion object {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("/".toRegex()) }
         .filter { it.isNotEmpty() }
+        .filter { it != "." }
 				.let(::PosixAbsPath)
 	}
 
-	override val pathString get() = path.joinToString("") { "/$it" }
+	override val pathString get() =
+    "/" + path.joinToString("/")
 	override val absolute get() = this
+  override val parent: PosixPath get() =
+    if (path.isEmpty()) this
+    else PosixAbsPath(path.dropLast(1))
+  override val canonical: PosixPath get() =
+    of(pathString
+      .replace("[^/]+/\\.{2}/".toRegex(), "")
+      .replace("/\\./".toRegex(), "/")
+      .replace("[^/]+/\\.{2}$".toRegex(), "")
+      .replace("/\\.$".toRegex(), "")
+      .replace("^~".toRegex(), home().pathString)
+      .replace("/+".toRegex(), "/")
+			.replace("/$".toRegex(), ""))
 
 	override fun toString() = pathString
 }

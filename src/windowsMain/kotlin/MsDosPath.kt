@@ -45,8 +45,10 @@ sealed interface MsDosPath {
 
 	@OptIn(ExperimentalForeignApi::class)
 	fun mkdir() {
-		if (isNotDirectory && doesNotExist)
+		if (isNotDirectory && doesNotExist){
+			if (parent.doesNotExist) parent.mkdir()
 			CreateDirectoryW(pathString, null)
+		}
 	}
 
 	@OptIn(ExperimentalForeignApi::class)
@@ -75,6 +77,8 @@ sealed interface MsDosPath {
 	val name: String get() = pathString.split("\\\\".toRegex()).last()
 	val pathString: String
 	val absolute: MsDosPath
+	val parent: MsDosPath
+	val canonical: MsDosPath
 }
 
 private data class MsDosRelPath(val path: List<String>): MsDosPath {
@@ -88,6 +92,8 @@ private data class MsDosRelPath(val path: List<String>): MsDosPath {
 
 	override val pathString get() = path.joinToString("\\")
 	override val absolute get() = MsDosPath.CWD.resolve(this)
+	override val parent: MsDosPath get() = absolute.parent
+	override val canonical: MsDosPath get() = absolute.canonical
 
 	override fun toString() = pathString
 }
@@ -104,6 +110,19 @@ private data class MsDosAbsPath(val path: List<String>, val drive: Char): MsDosP
 
 	override val pathString get() = "$drive:" + path.joinToString("") { "\\$it" }
 	override val absolute get() = this
+	override val parent: MsDosPath get() =
+		if (path.isEmpty()) this
+		else MsDosAbsPath(path.dropLast(1), drive)
+	override val canonical: MsDosPath get() =
+		of(pathString
+			.replace("\\", "/")
+			.replace("[^/]+/\\.{2}/".toRegex(), "")
+			.replace("/\\./".toRegex(), "/")
+			.replace("[^/]+/\\.{2}$".toRegex(), "")
+			.replace("/\\.$".toRegex(), "")
+			.replace("/+".toRegex(), "/")
+			.replace("/$".toRegex(), "")
+			.replace("/", "\\"))
 
 	override fun toString() = pathString
 }

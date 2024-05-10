@@ -6,6 +6,8 @@ expect interface Path {
   val name: String
   val pathString: String
   val absolute: Path
+  val parent: Path
+  val canonical: Path
 
   val exists: Boolean
   val doesNotExist: Boolean
