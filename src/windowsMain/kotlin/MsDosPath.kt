@@ -82,7 +82,7 @@ private data class MsDosRelPath(val path: List<String>): MsDosPath {
 	companion object {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("\\\\".toRegex()) }
-				.also { require(it.none { st -> st.isBlank() }) }
+        .filter { it.isNotEmpty() }
 				.let(::MsDosRelPath)
 	}
 
@@ -97,7 +97,7 @@ private data class MsDosAbsPath(val path: List<String>, val drive: Char): MsDosP
 	companion object {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("\\\\".toRegex()) }
-				.also { require(it.none { st -> st.isBlank() }) }
+        .filter { it.isNotEmpty() }
 				.let { it.first() to it.drop(1) }
 				.let { (drive, path) -> MsDosAbsPath(path, drive.first()) }
 	}

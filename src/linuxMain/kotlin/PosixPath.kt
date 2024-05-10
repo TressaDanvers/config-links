@@ -77,7 +77,7 @@ private data class PosixRelPath(val path: List<String>): PosixPath {
 	companion object {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("/".toRegex()) }
-				.also { require(it.none { st -> st.isBlank() }) }
+        .filter { it.isNotEmpty() }
 				.let(::PosixRelPath)
 	}
 
@@ -92,7 +92,7 @@ private data class PosixAbsPath(val path: List<String>): PosixPath {
 	companion object {
 		fun of(vararg path: String) =
 			path.flatMap { it.split("/".toRegex()) }
-				.also { require(it.none { st -> st.isBlank() }) }
+        .filter { it.isNotEmpty() }
 				.let(::PosixAbsPath)
 	}
 
